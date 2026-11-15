@@ -55,6 +55,35 @@ namespace league_of_legends
             // Van-e (van-e 20 gyilkosság feletti mérkőzés)
             var husz_feletti = merkozes_lista.Count(x => x.kill > 20);
             Console.WriteLine(husz_feletti > 20 ? "Igen, van 20 gyilkosság feletti mérkőzés." : "Nem, nincs 20 gyilkosság feletti mérkőzés.");
+
+            // Feltétel szerinti darabszám (hány győzelem született)
+            var gyozelem = merkozes_lista.Count(x => x.gyozelem == 1);
+            Console.WriteLine($"A győzelmek száma: {gyozelem}\n");
+
+            // Felhasználói keresés (bajnok nevének keresése)
+            while (true)
+            {
+                Console.Write("Kérem adja meg a keresett bajnok nevét: ");
+                string keresett_bajnok = Console.ReadLine();
+                var bajnok = bajnok_lista.FirstOrDefault(x => x.nev.ToLower() == keresett_bajnok.ToLower());
+                if (bajnok != null)
+                {
+                    Console.WriteLine($"Bajnok neve: {bajnok.nev}");
+                    Console.WriteLine($"Szerepkör: {bajnok.szerepkor}");
+                    Console.WriteLine($"Megjelenés dátuma: {bajnok.megjelenes_datuma.ToShortDateString()}");
+                    Console.WriteLine($"Nehezség: {bajnok.nehezseg}");
+                    Console.WriteLine($"Alap élet: {bajnok.alap_elet}\n");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("A keresett bajnok nem található.\n");
+                }
+            }
+
+            // Fájlba írás (vesztes mérkőzések listája)
+            var vesztes_merkozesek = merkozes_lista.Where(x => x.gyozelem == 0).Select(x => $"{x.merkozes_id};{x.bajnok_id};{x.jatekos_nev};{x.merkozes_datuma.ToShortDateString()};{x.kill};{x.death};{x.assist};{x.gyozelem};{x.idotartam_percben}");
+            File.WriteAllLines("vesztes_merkozesek.csv", vesztes_merkozesek);
         }
     }
 }
