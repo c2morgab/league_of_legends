@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,16 +11,36 @@ namespace league_of_legends
     {
         static void Main(string[] args)
         {
-            // Listák meghívása és feltöltése
+            Console.OutputEncoding = Encoding.UTF8;
+
+            // Listák meghívása és feltöltése (kivételkezeléssel a fájlbeolvasás hibáira)
             List<Merkozes> merkozes_lista = new List<Merkozes>();
-            foreach (string item in File.ReadAllLines("LoL_merkozesek.csv").Skip(1))
-            {
-                merkozes_lista.Add(new Merkozes(item));
-            }
             List<Bajnok> bajnok_lista = new List<Bajnok>();
-            foreach (string item in File.ReadAllLines("LoL_bajnokok.csv").Skip(1))
+            try
             {
-                bajnok_lista.Add(new Bajnok(item));
+                foreach (string item in File.ReadAllLines("LoL_merkozesek.csv").Skip(1))
+                {
+                    merkozes_lista.Add(new Merkozes(item));
+                }
+                foreach (string item in File.ReadAllLines("LoL_bajnokok.csv").Skip(1))
+                {
+                    bajnok_lista.Add(new Bajnok(item));
+                }
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.WriteLine($"A forrásfájl nem található: {ex.FileName}");
+                return;
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Hiba történt a fájl olvasása közben: {ex.Message}");
+                return;
+            }
+            catch (Exception ex) when (ex is FormatException || ex is IndexOutOfRangeException)
+            {
+                Console.WriteLine($"A forrásfájl hibás adatot tartalmaz: {ex.Message}");
+                return;
             }
 
             // Maximum keresés (legtöbb gyilkosság)
@@ -49,30 +68,40 @@ namespace league_of_legends
             Console.WriteLine($"Az összes mérkőzés száma: {all_matches}\n");
 
             // Statisztika (bajnokok száma szerepenként)
-            var stat = bajnok_lista.GroupBy(x => x.szerepkor).Select(x => new Dictionary<string, int> { { x.Key, x.Count() } }).ToList();
-            stat.ForEach(x => Console.WriteLine($"Szerepkör: {x.Keys.First()} - Bajnokok száma: {x.Values.First()}"));
+            var stat = bajnok_lista.GroupBy(x => x.szerepkor).Select(g => new
+            {
+                Szerepkor = g.Key,
+                Db = g.Count()
+            }).OrderBy(x => x.Szerepkor);
+            Console.WriteLine("Bajnokok száma szerepkörönként:");
+            stat.ToList().ForEach(x => Console.WriteLine($"Szerepkör: {x.Szerepkor} - Bajnokok száma: {x.Db}"));
 
             // Van-e (van-e 20 gyilkosság feletti mérkőzés)
-            var husz_feletti = merkozes_lista.Count(x => x.kill > 20);
-            Console.WriteLine(husz_feletti > 20 ? "Igen, van 20 gyilkosság feletti mérkőzés." : "Nem, nincs 20 gyilkosság feletti mérkőzés.");
+            var van_husz_feletti = merkozes_lista.Any(x => x.kill > 20);
+            Console.WriteLine(van_husz_feletti ? "\nIgen, van 20 gyilkosság feletti mérkőzés.\n" : "\nNem, nincs 20 gyilkosság feletti mérkőzés.\n");
 
             // Feltétel szerinti darabszám (hány győzelem született)
             var gyozelem = merkozes_lista.Count(x => x.gyozelem == 1);
             Console.WriteLine($"A győzelmek száma: {gyozelem}\n");
 
-            // Felhasználói keresés (bajnok nevének keresése)
+            // Osztálybeli metódus használata (legjobb KDA-értékű mérkőzés)
+            var legjobb_kda = merkozes_lista.OrderByDescending(x => x.KDA()).First();
+            Console.WriteLine($"A legjobb KDA-értékű mérkőzés: {legjobb_kda.merkozes_id}. mérkőzés, játékos: {legjobb_kda.jatekos_nev}, K/D/A: {legjobb_kda.kill}/{legjobb_kda.death}/{legjobb_kda.assist}, KDA: {legjobb_kda.KDA().ToString("F2")}\n");
+
+            // Felhasználói keresés (bajnok nevének keresése, a kiíratás a ToString() metódussal történik)
             while (true)
             {
                 Console.Write("Kérem adja meg a keresett bajnok nevét: ");
                 string keresett_bajnok = Console.ReadLine();
-                var bajnok = bajnok_lista.FirstOrDefault(x => x.nev.ToLower() == keresett_bajnok.ToLower());
+                Console.WriteLine();
+                if (keresett_bajnok == null)
+                {
+                    break;
+                }
+                var bajnok = bajnok_lista.FirstOrDefault(x => x.nev.ToLower() == keresett_bajnok.Trim().ToLower());
                 if (bajnok != null)
                 {
-                    Console.WriteLine($"Bajnok neve: {bajnok.nev}");
-                    Console.WriteLine($"Szerepkör: {bajnok.szerepkor}");
-                    Console.WriteLine($"Megjelenés dátuma: {bajnok.megjelenes_datuma.ToShortDateString()}");
-                    Console.WriteLine($"Nehezség: {bajnok.nehezseg}");
-                    Console.WriteLine($"Alap élet: {bajnok.alap_elet}\n");
+                    Console.WriteLine(bajnok.ToString() + "\n");
                     break;
                 }
                 else
@@ -85,7 +114,8 @@ namespace league_of_legends
             try
             {
                 var vesztes_merkozesek = merkozes_lista.Where(x => x.gyozelem == 0).Select(x => $"{x.merkozes_id};{x.bajnok_id};{x.jatekos_nev};{x.merkozes_datuma.ToShortDateString()};{x.kill};{x.death};{x.assist};{x.gyozelem};{x.idotartam_percben}");
-                File.WriteAllLines("vesztes_merkozesek.csv", vesztes_merkozesek);
+                var elso_sor = new List<string> { "MerkozesId;BajnokId;JatekosNev;MerkozesDatuma;Kill;Death;Assist;Gyozelem;IdotartamPerc" };
+                File.WriteAllLines("vesztes_merkozesek.csv", elso_sor.Concat(vesztes_merkozesek));
                 Console.WriteLine("A vesztes mérkőzések listája sikeresen kiírva a 'vesztes_merkozesek.csv' fájlba.\n");
             }
             catch (Exception ex)
@@ -104,13 +134,12 @@ namespace league_of_legends
                 m.assist,
                 m.gyozelem
             }).ToList();
-            Console.WriteLine("\nÖsszekapcsolt mérkőzések:");
+            Console.WriteLine("Összekapcsolt mérkőzések:");
             foreach (var item in osszekapcsolt_adatok)
             {
                 Console.WriteLine(
                     $"{item.jatekos_nev} | {item.BajnokNev} | {item.szerepkor} | K/D/A: {item.kill}/{item.death}/{item.assist} | Győzelem: {item.gyozelem}");
             }
-
         }
     }
 }

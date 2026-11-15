@@ -31,5 +31,15 @@ namespace league_of_legends
             gyozelem = int.Parse(parts[7]);
             idotartam_percben = int.Parse(parts[8]);
         }
+
+        // Osztálybeli metódus (mérkőzés KDA)
+        public double KDA()
+        {
+            if (death == 0)
+            {
+                return kill + assist;
+            }
+            return Math.Round((double)(kill + assist) / death, 2);
+        }
     }
 }

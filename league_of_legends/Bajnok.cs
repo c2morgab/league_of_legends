@@ -25,5 +25,11 @@ namespace league_of_legends
             nehezseg = int.Parse(parts[4]);
             alap_elet = int.Parse(parts[5]);
         }
+
+        // A bajnok adatainak szöveges megjelenítése (a felhasználói keresés kiíratásához)
+        public override string ToString()
+        {
+            return $"Bajnok neve: {nev}{Environment.NewLine}\nSzerepkör: {szerepkor}{Environment.NewLine}\nMegjelenés dátuma: {megjelenes_datuma.ToShortDateString()}{Environment.NewLine}\nNehézség: {nehezseg}{Environment.NewLine}\nAlap élet: {alap_elet}";
+        }
     }
 }
