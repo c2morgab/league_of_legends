@@ -48,9 +48,9 @@ namespace league_of_legends
             var all_matches = merkozes_lista.Count();
             Console.WriteLine($"Az összes mérkőzés száma: {all_matches}\n");
 
-            // Statisztika (mérkőzések száma szerepenként)
+            // Statisztika (bajnokok száma szerepenként)
             var stat = bajnok_lista.GroupBy(x => x.szerepkor).Select(x => new Dictionary<string, int> { { x.Key, x.Count() } }).ToList();
-            stat.ForEach(x => Console.WriteLine($"Szerepkör: {x.Keys.First()} - Mérkőzések száma: {x.Values.First()}"));
+            stat.ForEach(x => Console.WriteLine($"Szerepkör: {x.Keys.First()} - Bajnokok száma: {x.Values.First()}"));
 
             // Van-e (van-e 20 gyilkosság feletti mérkőzés)
             var husz_feletti = merkozes_lista.Count(x => x.kill > 20);
@@ -82,8 +82,35 @@ namespace league_of_legends
             }
 
             // Fájlba írás (vesztes mérkőzések listája)
-            var vesztes_merkozesek = merkozes_lista.Where(x => x.gyozelem == 0).Select(x => $"{x.merkozes_id};{x.bajnok_id};{x.jatekos_nev};{x.merkozes_datuma.ToShortDateString()};{x.kill};{x.death};{x.assist};{x.gyozelem};{x.idotartam_percben}");
-            File.WriteAllLines("vesztes_merkozesek.csv", vesztes_merkozesek);
+            try
+            {
+                var vesztes_merkozesek = merkozes_lista.Where(x => x.gyozelem == 0).Select(x => $"{x.merkozes_id};{x.bajnok_id};{x.jatekos_nev};{x.merkozes_datuma.ToShortDateString()};{x.kill};{x.death};{x.assist};{x.gyozelem};{x.idotartam_percben}");
+                File.WriteAllLines("vesztes_merkozesek.csv", vesztes_merkozesek);
+                Console.WriteLine("A vesztes mérkőzések listája sikeresen kiírva a 'vesztes_merkozesek.csv' fájlba.\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Hiba történt a fájl írása közben: {ex.Message}\n");
+            }
+
+            // Join() (mérkőzések összekapcsolása a bajnokok adataival)
+            var osszekapcsolt_adatok = merkozes_lista.Join(bajnok_lista, m => m.bajnok_id, b => b.bajnok_id, (m, b) => new
+            {
+                m.jatekos_nev,
+                BajnokNev = b.nev,
+                b.szerepkor,
+                m.kill,
+                m.death,
+                m.assist,
+                m.gyozelem
+            }).ToList();
+            Console.WriteLine("\nÖsszekapcsolt mérkőzések:");
+            foreach (var item in osszekapcsolt_adatok)
+            {
+                Console.WriteLine(
+                    $"{item.jatekos_nev} | {item.BajnokNev} | {item.szerepkor} | K/D/A: {item.kill}/{item.death}/{item.assist} | Győzelem: {item.gyozelem}");
+            }
+
         }
     }
 }
