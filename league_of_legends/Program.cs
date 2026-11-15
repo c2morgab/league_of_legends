@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,6 +38,23 @@ namespace league_of_legends
 
             // Átlag (mérkőzések átlagos időtartama)
             var avg_match_duration = merkozes_lista.Average(x => x.idotartam_percben);
+            Console.WriteLine($"A mérkőzések átlagos időtartama: {avg_match_duration.ToString("F2")} perc\n");
+
+            // Átlag alatti (átlag alatti mérkőzések száma)
+            var atlag_alatti = merkozes_lista.Where(x => x.idotartam_percben < avg_match_duration);
+            Console.WriteLine($"Az átlag alatti mérkőzések száma: {atlag_alatti.Count()}\n");
+
+            // Adatok száma (összes mérkőzés száma)
+            var all_matches = merkozes_lista.Count();
+            Console.WriteLine($"Az összes mérkőzés száma: {all_matches}\n");
+
+            // Statisztika (mérkőzések száma szerepenként)
+            var stat = bajnok_lista.GroupBy(x => x.szerepkor).Select(x => new Dictionary<string, int> { { x.Key, x.Count() } }).ToList();
+            stat.ForEach(x => Console.WriteLine($"Szerepkör: {x.Keys.First()} - Mérkőzések száma: {x.Values.First()}"));
+
+            // Van-e (van-e 20 gyilkosság feletti mérkőzés)
+            var husz_feletti = merkozes_lista.Count(x => x.kill > 20);
+            Console.WriteLine(husz_feletti > 20 ? "Igen, van 20 gyilkosság feletti mérkőzés." : "Nem, nincs 20 gyilkosság feletti mérkőzés.");
         }
     }
 }
