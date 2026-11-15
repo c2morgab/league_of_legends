@@ -8,15 +8,15 @@ namespace league_of_legends
 {
     public class Merkozes
     {
-        int merkozes_id { get; set; }
-        int bajnok_id { get; set; }
-        string jatekos_nev { get; set; }
-        DateTime merkozes_datuma { get; set; }
-        int kill { get; set; }
-        int death { get; set; }
-        int assist { get; set; }
-        int gyozelem { get; set; }
-        int idotartam_percben { get; set; }
+        public int merkozes_id { get; set; }
+        public int bajnok_id { get; set; }
+        public string jatekos_nev { get; set; }
+        public DateTime merkozes_datuma { get; set; }
+        public int kill { get; set; }
+        public int death { get; set; }
+        public int assist { get; set; }
+        public int gyozelem { get; set; }
+        public int idotartam_percben { get; set; }
 
         public Merkozes(string line)
         {

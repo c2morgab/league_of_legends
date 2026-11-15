@@ -8,12 +8,12 @@ namespace league_of_legends
 {
     public class Bajnok
     {
-        int bajnok_id { get; set; }
-        string nev { get; set; }
-        string szerepkor { get; set; }
-        DateTime megjelenes_datuma { get; set; }
-        int nehezseg { get; set; }
-        int alap_elet { get; set; }
+        public int bajnok_id { get; set; }
+        public string nev { get; set; }
+        public string szerepkor { get; set; }
+        public DateTime megjelenes_datuma { get; set; }
+        public int nehezseg { get; set; }
+        public int alap_elet { get; set; }
 
         public Bajnok(string line)
         {

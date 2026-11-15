@@ -22,6 +22,21 @@ namespace league_of_legends
             {
                 bajnok_lista.Add(new Bajnok(item));
             }
+
+            // Maximum keresés (legtöbb gyilkosság)
+            var max_kill = merkozes_lista.Max(x => x.kill);
+            Console.WriteLine($"A legtöbb gyilkosság egy mérkőzésen: {max_kill}\n");
+
+            // Minimum keresés (legkevesebb halál)
+            var min_death = merkozes_lista.Min(x => x.death);
+            Console.WriteLine($"A legkevesebb halál egy mérkőzésen: {min_death}\n");
+
+            // Összegzés (összes gyilkosság száma)
+            var all_kill = merkozes_lista.Sum(x => x.kill);
+            Console.WriteLine($"Az összes gyilkosság száma: {all_kill}\n");
+
+            // Átlag (mérkőzések átlagos időtartama)
+            var avg_match_duration = merkozes_lista.Average(x => x.idotartam_percben);
         }
     }
 }
